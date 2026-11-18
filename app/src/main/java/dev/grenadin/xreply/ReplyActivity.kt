@@ -2,6 +2,7 @@ package dev.grenadin.xreply
 
 import android.app.Activity
 import android.content.ActivityNotFoundException
+import android.content.ClipboardManager
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
@@ -10,6 +11,7 @@ import android.text.Editable
 import android.text.InputType
 import android.text.TextWatcher
 import android.util.TypedValue
+import android.view.Gravity
 import android.widget.Button
 import android.widget.EditText
 import android.widget.LinearLayout
@@ -23,10 +25,13 @@ class ReplyActivity : Activity() {
     private lateinit var textInput: EditText
     private lateinit var target: TextView
     private lateinit var send: Button
+    private lateinit var counter: TextView
     private var post: Post? = null
+    private var clipboardChecked = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        clipboardChecked = savedInstanceState?.getBoolean(STATE_CLIPBOARD_CHECKED) ?: false
         val pad = dp(20)
         target = TextView(this)
         linkInput = EditText(this).apply {
@@ -41,6 +46,7 @@ class ReplyActivity : Activity() {
             minLines = 3
             maxLines = 8
         }
+        counter = TextView(this).apply { gravity = Gravity.END }
         send = Button(this).apply {
             text = getString(R.string.open_web)
             setOnClickListener { post?.let { openReply(it) } }
@@ -56,6 +62,7 @@ class ReplyActivity : Activity() {
             addView(target)
             addView(linkInput)
             addView(textInput)
+            addView(counter)
             addView(send)
         })
 
@@ -65,11 +72,48 @@ class ReplyActivity : Activity() {
             override fun afterTextChanged(s: Editable?) = update(PostLink.parse(s?.toString()))
         })
 
+        textInput.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) = Unit
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) = Unit
+            override fun afterTextChanged(s: Editable?) = updateCounter()
+        })
+        updateCounter()
+
         val shared = if (intent?.action == Intent.ACTION_SEND) intent.getStringExtra(Intent.EXTRA_TEXT) else null
         val sharedPost = PostLink.parse(shared)
         if (savedInstanceState == null && sharedPost != null) linkInput.setText(sharedPost.url)
         else update(PostLink.parse(linkInput.text.toString()))
         (if (post != null) textInput else linkInput).requestFocus()
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putBoolean(STATE_CLIPBOARD_CHECKED, clipboardChecked)
+    }
+
+    override fun onWindowFocusChanged(hasFocus: Boolean) {
+        super.onWindowFocusChanged(hasFocus)
+        if (!hasFocus || clipboardChecked) return
+        clipboardChecked = true
+        val clip = (getSystemService(CLIPBOARD_SERVICE) as ClipboardManager).primaryClip
+            ?.takeIf { it.itemCount > 0 }?.getItemAt(0)?.coerceToText(this)?.toString()?.trim().orEmpty()
+        if (clip.isEmpty()) return
+        val clipPost = PostLink.parse(clip)
+        if (clipPost != null && clip.none { it.isWhitespace() }) {
+            if (post == null) {
+                linkInput.setText(clipPost.url)
+                textInput.requestFocus()
+            }
+        } else if (textInput.text.isEmpty()) {
+            textInput.setText(clip)
+            textInput.setSelection(textInput.text.length)
+        }
+    }
+
+    private fun updateCounter() {
+        val length = PostLength.count(textInput.text.toString())
+        counter.text = getString(R.string.counter, length, PostLength.LIMIT)
+        counter.setTextColor(if (length > PostLength.LIMIT) 0xFFD32F2F.toInt() else target.currentTextColor)
     }
 
     private fun update(newPost: Post?) {
@@ -112,5 +156,6 @@ class ReplyActivity : Activity() {
 
     companion object {
         private const val CHROME = "com.android.chrome"
+        private const val STATE_CLIPBOARD_CHECKED = "clipboard_checked"
     }
 }
