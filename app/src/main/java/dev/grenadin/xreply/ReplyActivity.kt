@@ -1,4 +1,4 @@
-package dev.grenadin.xcompanion
+package dev.grenadin.xreply
 
 import android.app.Activity
 import android.content.ActivityNotFoundException

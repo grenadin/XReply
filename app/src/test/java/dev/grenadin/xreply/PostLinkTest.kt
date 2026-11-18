@@ -1,4 +1,4 @@
-package dev.grenadin.xcompanion
+package dev.grenadin.xreply
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull

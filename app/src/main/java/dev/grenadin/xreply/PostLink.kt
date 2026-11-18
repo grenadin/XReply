@@ -1,4 +1,4 @@
-package dev.grenadin.xcompanion
+package dev.grenadin.xreply
 
 import java.net.URLEncoder
 
