@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">XCompanion</string>
+    <string name="share_label">Reply via web</string>
+    <string name="title">Reply via web</string>
+    <string name="link_hint">Post link (x.com/…/status/…)</string>
+    <string name="text_hint">Your reply</string>
+    <string name="replying_to">Replying to @%1$s</string>
+    <string name="replying_to_id">Replying to post %1$s</string>
+    <string name="no_post">Share a post from X, or paste its link.</string>
+    <string name="open_web">Reply on web</string>
+    <string name="no_browser">No browser found to open x.com.</string>
+</resources>

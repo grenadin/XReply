@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="share_label">ตอบกลับผ่านเว็บ</string>
+    <string name="title">ตอบกลับผ่านเว็บ</string>
+    <string name="link_hint">ลิงก์โพสต์ (x.com/…/status/…)</string>
+    <string name="text_hint">ข้อความตอบกลับ</string>
+    <string name="replying_to">ตอบกลับ @%1$s</string>
+    <string name="replying_to_id">ตอบกลับโพสต์ %1$s</string>
+    <string name="no_post">แชร์โพสต์จากแอป X หรือวางลิงก์โพสต์</string>
+    <string name="open_web">ตอบกลับบนเว็บ</string>
+    <string name="no_browser">ไม่พบเบราว์เซอร์สำหรับเปิด x.com</string>
+</resources>
