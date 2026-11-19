@@ -9,4 +9,19 @@
     <string name="no_post">แชร์โพสต์จากแอป X หรือวางลิงก์โพสต์</string>
     <string name="open_web">ตอบกลับบนเว็บ</string>
     <string name="no_browser">ไม่พบเบราว์เซอร์สำหรับเปิด x.com</string>
+    <string name="auto_post">โพสต์อัตโนมัติ (ใน XReply)</string>
+    <string name="logout">ออกจากระบบ X ใน XReply</string>
+    <string name="logged_out">ออกจากระบบแล้ว</string>
+    <string name="status_loading">กำลังเปิด x.com…</string>
+    <string name="status_login">เข้าสู่ระบบ X ที่นี่ (ครั้งแรกครั้งเดียว) แล้วระบบจะโพสต์ให้ต่อ</string>
+    <string name="status_posting">กำลังโพสต์…</string>
+    <string name="status_sent">ส่งตอบกลับแล้ว</string>
+    <string name="status_mismatch">ข้อความบนหน้าเว็บไม่ตรงกับที่พิมพ์ จึงไม่โพสต์ให้ ตรวจแล้วกด Post เอง</string>
+    <string name="status_manual">พิมพ์ข้อความแล้วกด Post</string>
+    <string name="status_unknown">ยืนยันไม่ได้ว่าส่งแล้ว ตรวจดูที่หน้าเว็บ</string>
+    <string name="mode_webview">● เปิดใน WebView ของ XReply (โพสต์อัตโนมัติ) · %1$s</string>
+    <string name="webview_logged_in">เข้าสู่ระบบ X แล้ว</string>
+    <string name="webview_logged_out">ยังไม่ได้เข้าสู่ระบบ X</string>
+    <string name="mode_chrome">○ เปิดใน Chrome (กด Post เอง)</string>
+    <string name="mode_webview_open">● เปิดอยู่ใน WebView ของ XReply</string>
 </resources>

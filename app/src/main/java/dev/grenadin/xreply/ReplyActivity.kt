@@ -8,9 +8,13 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
 import android.text.Editable
+import android.webkit.CookieManager
+import android.webkit.WebStorage
+import android.widget.CheckBox
 import android.text.InputType
 import android.text.TextWatcher
 import android.util.TypedValue
+import android.graphics.Typeface
 import android.view.Gravity
 import android.widget.Button
 import android.widget.EditText
@@ -26,6 +30,8 @@ class ReplyActivity : Activity() {
     private lateinit var target: TextView
     private lateinit var send: Button
     private lateinit var counter: TextView
+    private lateinit var autoPost: CheckBox
+    private lateinit var modeLabel: TextView
     private var post: Post? = null
     private var clipboardChecked = false
 
@@ -47,6 +53,29 @@ class ReplyActivity : Activity() {
             maxLines = 8
         }
         counter = TextView(this).apply { gravity = Gravity.END }
+        val prefs = getSharedPreferences(PREFS, MODE_PRIVATE)
+        modeLabel = TextView(this).apply {
+            setTypeface(typeface, Typeface.BOLD)
+            setPadding(0, 0, 0, dp(8))
+        }
+        autoPost = CheckBox(this).apply {
+            text = getString(R.string.auto_post)
+            isChecked = prefs.getBoolean(PREF_AUTO_POST, true)
+            setOnCheckedChangeListener { _, checked ->
+                prefs.edit().putBoolean(PREF_AUTO_POST, checked).apply()
+                updateMode()
+            }
+        }
+        val logout = TextView(this).apply {
+            text = getString(R.string.logout)
+            setPadding(0, dp(12), 0, 0)
+            setOnClickListener {
+                CookieManager.getInstance().removeAllCookies(null)
+                WebStorage.getInstance().deleteAllData()
+                Toast.makeText(context, R.string.logged_out, Toast.LENGTH_SHORT).show()
+                updateMode()
+            }
+        }
         send = Button(this).apply {
             text = getString(R.string.open_web)
             setOnClickListener { post?.let { openReply(it) } }
@@ -54,6 +83,7 @@ class ReplyActivity : Activity() {
         setContentView(LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             setPadding(pad, pad, pad, pad)
+            addView(modeLabel)
             addView(TextView(context).apply {
                 text = getString(R.string.title)
                 setTextSize(TypedValue.COMPLEX_UNIT_SP, 20f)
@@ -63,7 +93,9 @@ class ReplyActivity : Activity() {
             addView(linkInput)
             addView(textInput)
             addView(counter)
+            addView(autoPost)
             addView(send)
+            addView(logout)
         })
 
         linkInput.addTextChangedListener(object : TextWatcher {
@@ -84,6 +116,23 @@ class ReplyActivity : Activity() {
         if (savedInstanceState == null && sharedPost != null) linkInput.setText(sharedPost.url)
         else update(PostLink.parse(linkInput.text.toString()))
         (if (post != null) textInput else linkInput).requestFocus()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        updateMode()
+    }
+
+    private fun updateMode() {
+        if (autoPost.isChecked) {
+            val loggedIn = CookieManager.getInstance().getCookie("https://x.com")?.contains("auth_token=") == true
+            modeLabel.text = getString(R.string.mode_webview,
+                getString(if (loggedIn) R.string.webview_logged_in else R.string.webview_logged_out))
+            modeLabel.setTextColor(if (loggedIn) 0xFF2E7D32.toInt() else 0xFFEF6C00.toInt())
+        } else {
+            modeLabel.text = getString(R.string.mode_chrome)
+            modeLabel.setTextColor(target.currentTextColor)
+        }
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
@@ -127,6 +176,13 @@ class ReplyActivity : Activity() {
     }
 
     private fun openReply(post: Post) {
+        if (autoPost.isChecked) {
+            startActivity(Intent(this, WebReplyActivity::class.java)
+                .putExtra(WebReplyActivity.EXTRA_ID, post.id)
+                .putExtra(WebReplyActivity.EXTRA_TEXT, textInput.text.toString()))
+            finish()
+            return
+        }
         val uri = Uri.parse(PostLink.replyUrl(post.id, textInput.text.toString()))
         val browser = browserPackage()
         if (browser == null) {
@@ -157,5 +213,7 @@ class ReplyActivity : Activity() {
     companion object {
         private const val CHROME = "com.android.chrome"
         private const val STATE_CLIPBOARD_CHECKED = "clipboard_checked"
+        private const val PREFS = "settings"
+        private const val PREF_AUTO_POST = "auto_post"
     }
 }

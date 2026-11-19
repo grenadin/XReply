@@ -11,4 +11,19 @@
     <string name="open_web">Reply on web</string>
     <string name="no_browser">No browser found to open x.com.</string>
     <string name="counter" translatable="false">%1$d/%2$d</string>
+    <string name="auto_post">Post automatically (in XReply)</string>
+    <string name="logout">Log out of X in XReply</string>
+    <string name="logged_out">Logged out</string>
+    <string name="status_loading">Opening x.com…</string>
+    <string name="status_login">Log in to X here (first time only). The reply is posted after you log in.</string>
+    <string name="status_posting">Posting…</string>
+    <string name="status_sent">Reply sent</string>
+    <string name="status_mismatch">The text on the page differs from yours, so it was not posted. Check it and press Post yourself.</string>
+    <string name="status_manual">Write your reply and press Post.</string>
+    <string name="status_unknown">Could not confirm the reply was sent. Check the page.</string>
+    <string name="mode_webview">● Opens in XReply WebView (auto-post) · %1$s</string>
+    <string name="webview_logged_in">logged in to X</string>
+    <string name="webview_logged_out">not logged in yet</string>
+    <string name="mode_chrome">○ Opens in Chrome (you press Post)</string>
+    <string name="mode_webview_open">● Open in XReply WebView</string>
 </resources>
