@@ -5,6 +5,7 @@
 
     <queries>
         <package android:name="com.android.chrome" />
+        <package android:name="com.twitter.android" />
         <intent>
             <action android:name="android.support.customtabs.action.CustomTabsService" />
         </intent>

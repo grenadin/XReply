@@ -179,6 +179,7 @@ class ReplyActivity : Activity() {
         if (autoPost.isChecked) {
             startActivity(Intent(this, WebReplyActivity::class.java)
                 .putExtra(WebReplyActivity.EXTRA_ID, post.id)
+                .putExtra(WebReplyActivity.EXTRA_USER, post.user)
                 .putExtra(WebReplyActivity.EXTRA_TEXT, textInput.text.toString()))
             finish()
             return

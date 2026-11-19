@@ -2,7 +2,10 @@ package dev.grenadin.xreply
 
 import android.annotation.SuppressLint
 import android.app.Activity
+import android.content.ActivityNotFoundException
+import android.content.Intent
 import android.content.pm.ApplicationInfo
+import android.net.Uri
 import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
@@ -42,6 +45,7 @@ class WebReplyActivity : Activity() {
     private var seenLogin = false
     private var reloads = 0
     private var lastLogged = ""
+    private var postUrl = ""
 
     private enum class State { LOADING, CLICKED, DONE, MANUAL }
 
@@ -56,6 +60,8 @@ class WebReplyActivity : Activity() {
         }
         expected = intent.getStringExtra(EXTRA_TEXT).orEmpty()
         replyUrl = PostLink.replyUrl(id, expected)
+
+        postUrl = Post(id, intent.getStringExtra(EXTRA_USER)).url
 
         val pad = dp(12)
         status = TextView(this).apply { setPadding(pad, pad, pad, pad) }
@@ -120,6 +126,7 @@ class WebReplyActivity : Activity() {
 
         startedAt = System.currentTimeMillis()
         webView.loadUrl(replyUrl)
+        Log.i(TAG, "start")
         if (expected.isBlank()) {
             state = State.MANUAL
             reveal(R.string.status_manual)
@@ -140,7 +147,8 @@ class WebReplyActivity : Activity() {
         if (state == State.DONE || state == State.MANUAL) return
         val now = System.currentTimeMillis()
         if (result != lastLogged) {
-            Log.i(TAG, "state=$state revealed=$revealed result=${result.substringBefore(':')}")
+            val shown = if (result.startsWith("mismatch")) "mismatch" else result
+            Log.i(TAG, "t=${now - startedAt} state=$state revealed=$revealed result=$shown")
             lastLogged = result
         }
         when (state) {
@@ -179,7 +187,10 @@ class WebReplyActivity : Activity() {
                 result.startsWith("left:") -> {
                     state = State.DONE
                     Toast.makeText(this, R.string.status_sent, Toast.LENGTH_SHORT).show()
-                    handler.postDelayed(::finish, if (revealed) FINISH_DELAY_MS else 0L)
+                    handler.postDelayed({
+                        openInX()
+                        finish()
+                    }, if (revealed) FINISH_DELAY_MS else 0L)
                 }
                 result.startsWith("toast:") -> {
                     state = State.MANUAL
@@ -195,6 +206,14 @@ class WebReplyActivity : Activity() {
         }
         if (state == State.LOADING && !revealed && now - startedAt > HIDDEN_TIMEOUT_MS) {
             reveal(R.string.status_timeout)
+        }
+    }
+
+    private fun openInX() {
+        try {
+            startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(postUrl)).setPackage(X_PACKAGE))
+        } catch (e: ActivityNotFoundException) {
+            Log.i(TAG, "X app not available")
         }
     }
 
@@ -236,6 +255,8 @@ class WebReplyActivity : Activity() {
     companion object {
         const val EXTRA_ID = "id"
         const val EXTRA_TEXT = "text"
+        const val EXTRA_USER = "user"
+        private const val X_PACKAGE = "com.twitter.android"
         private const val POLL_MS = 500L
         private const val CLICK_DELAY_MS = 1000L
         private const val CONFIRM_TIMEOUT_MS = 15000L
@@ -260,7 +281,7 @@ class WebReplyActivity : Activity() {
             return 'ready';
         })(EXPECTED)"""
 
-        private const val CLICK_JS = """(function() {
+        private const val CLICK_JS ="""(function() {
             var btn = document.querySelector('[data-testid="tweetButton"]');
             if (!btn || btn.getAttribute('aria-disabled') === 'true') return 'no';
             btn.click();
