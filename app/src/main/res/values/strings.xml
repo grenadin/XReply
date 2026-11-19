@@ -26,4 +26,8 @@
     <string name="webview_logged_out">not logged in yet</string>
     <string name="mode_chrome">○ Opens in Chrome (you press Post)</string>
     <string name="mode_webview_open">● Open in XReply WebView</string>
+    <string name="status_sending">Sending reply…</string>
+    <string name="status_timeout">This is taking too long. Check the page.</string>
+    <string name="show_page">Show page</string>
+    <string name="cancel">Cancel</string>
 </resources>

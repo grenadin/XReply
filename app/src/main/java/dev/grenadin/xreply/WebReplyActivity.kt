@@ -2,33 +2,46 @@ package dev.grenadin.xreply
 
 import android.annotation.SuppressLint
 import android.app.Activity
-import android.net.Uri
+import android.content.pm.ApplicationInfo
+import android.graphics.Typeface
+import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import android.content.pm.ApplicationInfo
 import android.util.Log
-import android.graphics.Typeface
+import android.util.TypedValue
+import android.view.Gravity
+import android.view.View
 import android.webkit.CookieManager
 import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import android.widget.Button
+import android.widget.FrameLayout
 import android.widget.LinearLayout
+import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
 import org.json.JSONObject
 
 class WebReplyActivity : Activity() {
     private lateinit var webView: WebView
+    private lateinit var page: LinearLayout
+    private lateinit var blocker: View
+    private lateinit var card: LinearLayout
     private lateinit var status: TextView
+    private lateinit var cardStatus: TextView
     private val handler = Handler(Looper.getMainLooper())
     private lateinit var replyUrl: String
     private var expected = ""
     private var state = State.LOADING
+    private var revealed = false
+    private var startedAt = 0L
     private var readySince = 0L
     private var clickedAt = 0L
     private var seenLogin = false
     private var reloads = 0
+    private var lastLogged = ""
 
     private enum class State { LOADING, CLICKED, DONE, MANUAL }
 
@@ -43,9 +56,8 @@ class WebReplyActivity : Activity() {
         }
         expected = intent.getStringExtra(EXTRA_TEXT).orEmpty()
         replyUrl = PostLink.replyUrl(id, expected)
-        if (expected.isBlank()) state = State.MANUAL
 
-        val pad = (12 * resources.displayMetrics.density).toInt()
+        val pad = dp(12)
         status = TextView(this).apply { setPadding(pad, pad, pad, pad) }
         webView = WebView(this).apply {
             settings.javaScriptEnabled = true
@@ -58,9 +70,10 @@ class WebReplyActivity : Activity() {
             }
         }
         CookieManager.getInstance().setAcceptThirdPartyCookies(webView, true)
-        setContentView(LinearLayout(this).apply {
+        page = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             fitsSystemWindows = true
+            alpha = 0f
             addView(TextView(context).apply {
                 text = getString(R.string.mode_webview_open)
                 setTypeface(typeface, Typeface.BOLD)
@@ -69,10 +82,51 @@ class WebReplyActivity : Activity() {
             })
             addView(status)
             addView(webView, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f))
+        }
+        blocker = View(this).apply { isClickable = true }
+        cardStatus = TextView(this).apply {
+            gravity = Gravity.CENTER
+            setPadding(0, dp(12), 0, dp(12))
+        }
+        card = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            gravity = Gravity.CENTER_HORIZONTAL
+            setPadding(dp(24), dp(24), dp(24), dp(16))
+            background = GradientDrawable().apply {
+                setColor(themeColor(android.R.attr.colorBackground))
+                cornerRadius = dp(16).toFloat()
+            }
+            elevation = dp(8).toFloat()
+            addView(ProgressBar(context))
+            addView(cardStatus)
+            addView(LinearLayout(context).apply {
+                addView(Button(context, null, android.R.attr.borderlessButtonStyle).apply {
+                    text = getString(R.string.cancel)
+                    setOnClickListener { finish() }
+                })
+                addView(Button(context, null, android.R.attr.borderlessButtonStyle).apply {
+                    text = getString(R.string.show_page)
+                    setOnClickListener { reveal() }
+                })
+            })
+        }
+        setContentView(FrameLayout(this).apply {
+            addView(page, FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT))
+            addView(blocker, FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT))
+            addView(card, FrameLayout.LayoutParams(
+                (resources.displayMetrics.widthPixels * 0.8f).toInt().coerceAtMost(dp(360)),
+                FrameLayout.LayoutParams.WRAP_CONTENT, Gravity.CENTER))
         })
-        setStatus(if (state == State.MANUAL) R.string.status_manual else R.string.status_loading)
+
+        startedAt = System.currentTimeMillis()
         webView.loadUrl(replyUrl)
-        if (state != State.MANUAL) handler.postDelayed(::poll, POLL_MS)
+        if (expected.isBlank()) {
+            state = State.MANUAL
+            reveal(R.string.status_manual)
+        } else {
+            setStatus(R.string.status_sending)
+            handler.postDelayed(::poll, POLL_MS)
+        }
     }
 
     private fun poll() {
@@ -82,28 +136,19 @@ class WebReplyActivity : Activity() {
         handler.postDelayed(::poll, POLL_MS)
     }
 
-    private var lastLogged = ""
-    private var waitingSince = 0L
-
     private fun onResult(result: String) {
+        if (state == State.DONE || state == State.MANUAL) return
         val now = System.currentTimeMillis()
         if (result != lastLogged) {
-            Log.i(TAG, "state=$state result=$result url=${webView.url}")
+            Log.i(TAG, "state=$state revealed=$revealed result=${result.substringBefore(':')}")
             lastLogged = result
         }
-        if (result.startsWith("waiting") || result.startsWith("other")) {
-            if (waitingSince == 0L) waitingSince = now
-            if (now - waitingSince > 4000) {
-                waitingSince = now
-                webView.evaluateJavascript(PROBE_JS) { Log.i(TAG, "probe ${it.orEmpty()}") }
-            }
-        } else waitingSince = 0
         when (state) {
             State.LOADING -> when {
                 result == "login" -> {
                     seenLogin = true
                     readySince = 0
-                    setStatus(R.string.status_login)
+                    reveal(R.string.status_login)
                 }
                 result.startsWith("other") -> {
                     readySince = 0
@@ -115,14 +160,13 @@ class WebReplyActivity : Activity() {
                 }
                 result.startsWith("mismatch") -> {
                     state = State.MANUAL
-                    setStatus(R.string.status_mismatch)
+                    reveal(R.string.status_mismatch)
                 }
                 result == "ready" -> {
                     if (readySince == 0L) readySince = now
-                    setStatus(R.string.status_posting)
                     if (now - readySince >= CLICK_DELAY_MS) {
                         webView.evaluateJavascript(CLICK_JS) { raw ->
-                            if (raw?.trim('"') == "clicked") {
+                            if (raw?.trim('"') == "clicked" && state == State.LOADING) {
                                 state = State.CLICKED
                                 clickedAt = System.currentTimeMillis()
                             }
@@ -132,31 +176,55 @@ class WebReplyActivity : Activity() {
                 else -> readySince = 0
             }
             State.CLICKED -> when {
-                result.startsWith("toast:") -> {
-                    state = State.MANUAL
-                    status.text = result.removePrefix("toast:")
-                }
                 result.startsWith("left:") -> {
                     state = State.DONE
                     Toast.makeText(this, R.string.status_sent, Toast.LENGTH_SHORT).show()
-                    handler.postDelayed(::finish, FINISH_DELAY_MS)
+                    handler.postDelayed(::finish, if (revealed) FINISH_DELAY_MS else 0L)
+                }
+                result.startsWith("toast:") -> {
+                    state = State.MANUAL
+                    reveal()
+                    status.text = result.removePrefix("toast:")
                 }
                 now - clickedAt > CONFIRM_TIMEOUT_MS -> {
                     state = State.MANUAL
-                    setStatus(R.string.status_unknown)
+                    reveal(R.string.status_unknown)
                 }
             }
             else -> Unit
         }
+        if (state == State.LOADING && !revealed && now - startedAt > HIDDEN_TIMEOUT_MS) {
+            reveal(R.string.status_timeout)
+        }
+    }
+
+    private fun reveal(res: Int = 0) {
+        if (res != 0) setStatus(res)
+        if (revealed) return
+        revealed = true
+        Log.i(TAG, "reveal")
+        page.alpha = 1f
+        page.setBackgroundColor(themeColor(android.R.attr.colorBackground))
+        blocker.visibility = View.GONE
+        card.visibility = View.GONE
     }
 
     private fun setStatus(res: Int) {
         status.text = getString(res)
+        cardStatus.text = getString(res)
     }
+
+    private fun themeColor(attr: Int): Int {
+        val value = TypedValue()
+        theme.resolveAttribute(attr, value, true)
+        return value.data
+    }
+
+    private fun dp(value: Int) = (value * resources.displayMetrics.density).toInt()
 
     @Deprecated("Deprecated in Java")
     override fun onBackPressed() {
-        if (webView.canGoBack()) webView.goBack() else super.onBackPressed()
+        if (revealed && webView.canGoBack()) webView.goBack() else super.onBackPressed()
     }
 
     override fun onDestroy() {
@@ -171,19 +239,10 @@ class WebReplyActivity : Activity() {
         private const val POLL_MS = 500L
         private const val CLICK_DELAY_MS = 1000L
         private const val CONFIRM_TIMEOUT_MS = 15000L
+        private const val HIDDEN_TIMEOUT_MS = 20000L
         private const val FINISH_DELAY_MS = 1200L
         private const val MAX_RELOADS = 2
         private const val TAG = "XReply"
-
-        private const val PROBE_JS = """(function() {
-            var ids = Array.prototype.slice.call(document.querySelectorAll('[data-testid]'))
-                .map(function(e) { return e.getAttribute('data-testid'); });
-            var boxes = Array.prototype.slice.call(document.querySelectorAll('[contenteditable="true"], textarea'))
-                .map(function(e) { return (e.getAttribute('data-testid') || e.tagName) + ':' + (e.innerText || e.value || '').length; });
-            var buttons = Array.prototype.slice.call(document.querySelectorAll('[role="button"], button'))
-                .map(function(e) { return (e.getAttribute('data-testid') || '-') + '=' + (e.innerText || '').trim().slice(0, 20) + (e.getAttribute('aria-disabled') === 'true' ? '(disabled)' : ''); });
-            return JSON.stringify({ path: location.pathname, ids: ids.slice(0, 60), boxes: boxes, buttons: buttons.slice(0, 30) });
-        })()"""
 
         private const val CHECK_JS = """(function(expected) {
             var path = location.pathname;

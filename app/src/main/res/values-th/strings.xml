@@ -24,4 +24,8 @@
     <string name="webview_logged_out">ยังไม่ได้เข้าสู่ระบบ X</string>
     <string name="mode_chrome">○ เปิดใน Chrome (กด Post เอง)</string>
     <string name="mode_webview_open">● เปิดอยู่ใน WebView ของ XReply</string>
+    <string name="status_sending">กำลังส่งตอบกลับ…</string>
+    <string name="status_timeout">ใช้เวลานานเกินไป ตรวจดูที่หน้าเว็บ</string>
+    <string name="show_page">แสดงหน้าเว็บ</string>
+    <string name="cancel">ยกเลิก</string>
 </resources>
