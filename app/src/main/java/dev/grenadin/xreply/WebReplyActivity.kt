@@ -16,6 +16,7 @@ import android.util.Log
 import android.util.TypedValue
 import android.view.Gravity
 import android.view.View
+import android.view.WindowManager
 import android.webkit.CookieManager
 import android.webkit.JavascriptInterface
 import android.webkit.WebResourceRequest
@@ -50,6 +51,7 @@ class WebReplyActivity : Activity() {
     private var attachedAt = 0L
     private var lastToast = ""
     private var leftAt = 0L
+    private var quiet = false
 
     private enum class State { LOADING, CLICKED, DONE, MANUAL }
 
@@ -104,6 +106,14 @@ class WebReplyActivity : Activity() {
                 (resources.displayMetrics.widthPixels * 0.8f).toInt().coerceAtMost(dp(360)),
                 FrameLayout.LayoutParams.WRAP_CONTENT, Gravity.CENTER))
         })
+
+        quiet = !getSharedPreferences(ReplyActivity.PREFS, MODE_PRIVATE).getBoolean(ReplyActivity.PREF_SHOW_POST_STATUS, true)
+        if (quiet) {
+            postStatusCard.visibility = View.GONE
+            window.clearFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND)
+            window.addFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE)
+            window.attributes = window.attributes.apply { alpha = 0f }
+        }
 
         startedAt = System.currentTimeMillis()
         webView.loadUrl(replyUrl)
@@ -232,6 +242,10 @@ class WebReplyActivity : Activity() {
         if (revealed) return
         revealed = true
         log("reveal")
+        if (quiet) {
+            window.clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE)
+            window.attributes = window.attributes.apply { alpha = 1f }
+        }
         page.alpha = 1f
         page.setBackgroundColor(themeColor(android.R.attr.colorBackground))
         blocker.visibility = View.GONE

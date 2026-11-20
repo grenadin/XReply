@@ -21,6 +21,8 @@ class SettingsActivity : Activity() {
     private lateinit var loginButton: TextView
     private lateinit var autoPostSwitch: Switch
     private lateinit var autoPostHint: TextView
+    private lateinit var postStatusSwitch: Switch
+    private lateinit var postStatusHint: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -73,6 +75,20 @@ class SettingsActivity : Activity() {
             setTextColor(secondary)
             setPadding(0, dp(4), 0, 0)
         }
+        postStatusSwitch = Switch(this).apply {
+            text = getString(R.string.show_post_status)
+            setTextColor(textColor)
+            setTextSize(TypedValue.COMPLEX_UNIT_SP, 16f)
+            isChecked = prefs.getBoolean(ReplyActivity.PREF_SHOW_POST_STATUS, true)
+            setOnCheckedChangeListener { _, checked ->
+                prefs.edit().putBoolean(ReplyActivity.PREF_SHOW_POST_STATUS, checked).apply()
+                refresh()
+            }
+        }
+        postStatusHint = TextView(this).apply {
+            setTextColor(secondary)
+            setPadding(0, dp(4), 0, 0)
+        }
 
         val content = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
@@ -94,6 +110,8 @@ class SettingsActivity : Activity() {
             addView(section(R.string.settings_sending))
             addView(autoPostSwitch, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT))
             addView(autoPostHint)
+            addView(postStatusSwitch, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { topMargin = dp(16) })
+            addView(postStatusHint)
             addView(section(R.string.settings_how))
             addView(TextView(context).apply {
                 text = getString(R.string.settings_how_text)
@@ -127,6 +145,8 @@ class SettingsActivity : Activity() {
         clearButton.visibility = if (loggedIn) View.VISIBLE else View.GONE
         loginButton.visibility = if (loggedIn) View.GONE else View.VISIBLE
         autoPostHint.text = getString(if (autoPostSwitch.isChecked) R.string.auto_post_on else R.string.auto_post_off)
+        postStatusSwitch.isEnabled = autoPostSwitch.isChecked
+        postStatusHint.text = getString(if (postStatusSwitch.isChecked) R.string.show_post_status_on else R.string.show_post_status_off)
     }
 
     private fun confirmClear() {

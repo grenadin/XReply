@@ -527,6 +527,7 @@ class ReplyActivity : Activity() {
         private const val CHROME = "com.android.chrome"
         const val PREFS = "settings"
         const val PREF_AUTO_POST = "auto_post"
+        const val PREF_SHOW_POST_STATUS = "show_post_status"
         private const val STATE_MEDIA = "media"
         private const val REQUEST_IMAGES = 1
         private const val MENU_AUTO = 1

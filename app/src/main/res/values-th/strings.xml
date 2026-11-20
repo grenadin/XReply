@@ -51,4 +51,7 @@
     <string name="login_button">เข้าสู่ระบบ X</string>
     <string name="login_title">เข้าสู่ระบบ X</string>
     <string name="view_post">ดูโพสต์</string>
+    <string name="show_post_status">แสดงสถานะขณะส่ง</string>
+    <string name="show_post_status_on">เปิด: แสดงการ์ดสถานะระหว่างส่งตอบกลับ</string>
+    <string name="show_post_status_off">ปิด: ไม่แสดงอะไรระหว่างส่ง หน้าเว็บจะขึ้นเฉพาะเมื่อต้องให้คุณจัดการ</string>
 </resources>

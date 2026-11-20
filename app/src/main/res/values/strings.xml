@@ -54,4 +54,7 @@
     <string name="login_button">Log in to X</string>
     <string name="login_title">Log in to X</string>
     <string name="view_post">View post</string>
+    <string name="show_post_status">Show sending status</string>
+    <string name="show_post_status_on">On: a card shows the progress while the reply is sent.</string>
+    <string name="show_post_status_off">Off: nothing is shown while sending. The page appears only if something needs you.</string>
 </resources>
