@@ -7,7 +7,7 @@
     <string name="text_hint">Your reply</string>
     <string name="replying_to">Replying to @%1$s</string>
     <string name="replying_to_id">Replying to post %1$s</string>
-    <string name="no_post">Share a post from X, or paste its link.</string>
+    <string name="no_post">Share a post from the X app and pick XReply.</string>
     <string name="open_web">Reply on web</string>
     <string name="no_browser">No browser found to open x.com.</string>
     <string name="counter" translatable="false">%1$d/%2$d</string>
@@ -16,7 +16,6 @@
     <string name="logged_out">Logged out</string>
     <string name="status_loading">Opening x.com…</string>
     <string name="status_login">Log in to X here (first time only). The reply is posted after you log in.</string>
-    <string name="status_posting">Posting…</string>
     <string name="status_sent">Reply sent</string>
     <string name="status_mismatch">The text on the page differs from yours, so it was not posted. Check it and press Post yourself.</string>
     <string name="status_manual">Write your reply and press Post.</string>
@@ -30,4 +29,29 @@
     <string name="status_timeout">This is taking too long. Check the page.</string>
     <string name="show_page">Show page</string>
     <string name="cancel">Cancel</string>
+    <string name="reply_button">Reply</string>
+    <string name="post_reply_hint">Post your reply</string>
+    <string name="more_options">More options</string>
+    <string name="change_link">Change post</string>
+    <string name="time_now">now</string>
+    <string name="add_image">Add photos</string>
+    <string name="remove_image">Remove photo</string>
+    <string name="images_need_auto">Photos can only be sent with "Post automatically" on.</string>
+    <string name="image_failed">Could not read that photo.</string>
+    <string name="media_failed">The photos could not be attached. Check the page.</string>
+    <string name="settings_account">X account in XReply</string>
+    <string name="settings_logged_in">Logged in to X</string>
+    <string name="settings_logged_out">Not logged in. Log in once so XReply can post for you.</string>
+    <string name="clear_login">Clear X login</string>
+    <string name="clear_login_confirm">Log out of X in XReply and clear its saved web data? You will log in again the next time you send.</string>
+    <string name="settings_sending">Sending</string>
+    <string name="auto_post_on">On: XReply posts for you in a hidden page. Photos work.</string>
+    <string name="auto_post_off">Off: the reply opens in Chrome and you press Post yourself.</string>
+    <string name="settings_how">How to use</string>
+    <string name="settings_how_text">1. In the X app, tap Share on a post.\n2. Pick XReply.\n3. Write your reply and tap Reply.</string>
+    <string name="unofficial">Unofficial app. Not affiliated with X Corp.</string>
+    <string name="version">Version %1$s</string>
+    <string name="login_button">Log in to X</string>
+    <string name="login_title">Log in to X</string>
+    <string name="view_post">View post</string>
 </resources>

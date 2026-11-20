@@ -6,7 +6,7 @@
     <string name="text_hint">ข้อความตอบกลับ</string>
     <string name="replying_to">ตอบกลับ @%1$s</string>
     <string name="replying_to_id">ตอบกลับโพสต์ %1$s</string>
-    <string name="no_post">แชร์โพสต์จากแอป X หรือวางลิงก์โพสต์</string>
+    <string name="no_post">แชร์โพสต์จากแอป X แล้วเลือก XReply</string>
     <string name="open_web">ตอบกลับบนเว็บ</string>
     <string name="no_browser">ไม่พบเบราว์เซอร์สำหรับเปิด x.com</string>
     <string name="auto_post">โพสต์อัตโนมัติ (ใน XReply)</string>
@@ -14,7 +14,6 @@
     <string name="logged_out">ออกจากระบบแล้ว</string>
     <string name="status_loading">กำลังเปิด x.com…</string>
     <string name="status_login">เข้าสู่ระบบ X ที่นี่ (ครั้งแรกครั้งเดียว) แล้วระบบจะโพสต์ให้ต่อ</string>
-    <string name="status_posting">กำลังโพสต์…</string>
     <string name="status_sent">ส่งตอบกลับแล้ว</string>
     <string name="status_mismatch">ข้อความบนหน้าเว็บไม่ตรงกับที่พิมพ์ จึงไม่โพสต์ให้ ตรวจแล้วกด Post เอง</string>
     <string name="status_manual">พิมพ์ข้อความแล้วกด Post</string>
@@ -28,4 +27,28 @@
     <string name="status_timeout">ใช้เวลานานเกินไป ตรวจดูที่หน้าเว็บ</string>
     <string name="show_page">แสดงหน้าเว็บ</string>
     <string name="cancel">ยกเลิก</string>
+    <string name="reply_button">ตอบกลับ</string>
+    <string name="post_reply_hint">โพสต์คำตอบของคุณ</string>
+    <string name="more_options">ตัวเลือกเพิ่มเติม</string>
+    <string name="change_link">เปลี่ยนโพสต์</string>
+    <string name="time_now">เมื่อสักครู่</string>
+    <string name="add_image">เพิ่มรูปภาพ</string>
+    <string name="remove_image">ลบรูปภาพ</string>
+    <string name="images_need_auto">ส่งรูปได้เฉพาะเมื่อเปิด "โพสต์อัตโนมัติ"</string>
+    <string name="image_failed">อ่านรูปนี้ไม่ได้</string>
+    <string name="media_failed">แนบรูปไม่สำเร็จ ตรวจดูที่หน้าเว็บ</string>
+    <string name="settings_account">บัญชี X ใน XReply</string>
+    <string name="settings_logged_in">เข้าสู่ระบบ X แล้ว</string>
+    <string name="settings_logged_out">ยังไม่ได้เข้าสู่ระบบ เข้าสู่ระบบครั้งเดียวเพื่อให้ XReply โพสต์แทนคุณได้</string>
+    <string name="clear_login">ล้างการเข้าสู่ระบบ X</string>
+    <string name="clear_login_confirm">ออกจากระบบ X ใน XReply และล้างข้อมูลเว็บที่เก็บไว้หรือไม่ ครั้งหน้าที่ส่งจะต้องเข้าสู่ระบบใหม่</string>
+    <string name="settings_sending">การส่ง</string>
+    <string name="auto_post_on">เปิด: XReply โพสต์ให้ในหน้าเว็บที่ซ่อนอยู่ ส่งรูปได้</string>
+    <string name="auto_post_off">ปิด: เปิดหน้าตอบกลับใน Chrome แล้วกด Post เอง</string>
+    <string name="settings_how">วิธีใช้</string>
+    <string name="settings_how_text">1. ในแอป X กดแชร์ที่โพสต์\n2. เลือก XReply\n3. พิมพ์ข้อความแล้วกดตอบกลับ</string>
+    <string name="unofficial">แอปไม่เป็นทางการ ไม่เกี่ยวข้องกับ X Corp.</string>
+    <string name="login_button">เข้าสู่ระบบ X</string>
+    <string name="login_title">เข้าสู่ระบบ X</string>
+    <string name="view_post">ดูโพสต์</string>
 </resources>
