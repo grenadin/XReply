@@ -1,13 +1,10 @@
 package dev.grenadin.xreply
 
-import android.annotation.SuppressLint
 import android.app.Activity
 import android.os.Handler
 import android.os.Looper
 import android.view.ViewGroup
-import android.webkit.WebResourceRequest
 import android.webkit.WebView
-import android.webkit.WebViewClient
 import org.json.JSONArray
 
 // Loads an x.com page with the user's own login in an invisible WebView and polls readJs until it returns JSON.
@@ -22,16 +19,8 @@ class HiddenPage(
     private var webView: WebView? = null
     private var startedAt = 0L
 
-    @SuppressLint("SetJavaScriptEnabled")
     fun start(): HiddenPage {
-        val view = WebView(activity).apply {
-            settings.javaScriptEnabled = true
-            settings.domStorageEnabled = true
-            alpha = 0f
-            webViewClient = object : WebViewClient() {
-                override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest) = request.url.scheme != "https"
-            }
-        }
+        val view = XWebView.create(activity).apply { alpha = 0f }
         webView = view
         (activity.window.decorView as ViewGroup).addView(view, 0, ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT))
         startedAt = System.currentTimeMillis()
@@ -70,7 +59,5 @@ class HiddenPage(
     companion object {
         private const val POLL_MS = 400L
         private const val TIMEOUT_MS = 12000L
-
-        const val LOGIN_CHECK_JS = "if (/^\\/(i\\/flow\\/login|login)/.test(location.pathname)) return 'fail';"
     }
 }

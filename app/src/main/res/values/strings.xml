@@ -2,19 +2,14 @@
 <resources>
     <string name="app_name">XReply</string>
     <string name="share_label">Reply via web</string>
-    <string name="title">Reply via web</string>
-    <string name="link_hint">Post link (x.com/…/status/…)</string>
-    <string name="text_hint">Your reply</string>
     <string name="replying_to">Replying to @%1$s</string>
     <string name="replying_to_id">Replying to post %1$s</string>
     <string name="no_post">Share a post from the X app and pick XReply.</string>
-    <string name="open_web">Reply on web</string>
     <string name="no_browser">No browser found to open x.com.</string>
     <string name="counter" translatable="false">%1$d/%2$d</string>
     <string name="auto_post">Post automatically (in XReply)</string>
     <string name="logout">Log out of X in XReply</string>
     <string name="logged_out">Logged out</string>
-    <string name="status_loading">Opening x.com…</string>
     <string name="status_login">Log in to X here (first time only). The reply is posted after you log in.</string>
     <string name="status_sent">Reply sent</string>
     <string name="status_mismatch">The text on the page differs from yours, so it was not posted. Check it and press Post yourself.</string>
@@ -32,7 +27,6 @@
     <string name="reply_button">Reply</string>
     <string name="post_reply_hint">Post your reply</string>
     <string name="more_options">More options</string>
-    <string name="change_link">Change post</string>
     <string name="time_now">now</string>
     <string name="add_image">Add photos</string>
     <string name="remove_image">Remove photo</string>

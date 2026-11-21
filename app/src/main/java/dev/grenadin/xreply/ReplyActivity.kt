@@ -4,7 +4,6 @@ import android.app.Activity
 import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.graphics.Bitmap
 import android.graphics.Outline
 import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
@@ -14,11 +13,7 @@ import android.os.Handler
 import android.os.Looper
 import android.text.Editable
 import android.text.InputType
-import android.text.SpannableString
-import android.text.Spanned
-import android.text.TextUtils
 import android.text.TextWatcher
-import android.text.style.ForegroundColorSpan
 import android.util.TypedValue
 import android.view.Gravity
 import android.view.View
@@ -36,7 +31,6 @@ import android.widget.Toast
 import androidx.browser.customtabs.CustomTabsClient
 import androidx.browser.customtabs.CustomTabsIntent
 import java.io.File
-import java.util.Locale
 import java.util.concurrent.Executors
 
 class ReplyActivity : Activity() {
@@ -44,16 +38,9 @@ class ReplyActivity : Activity() {
     private lateinit var send: TextView
     private lateinit var counter: TextView
     private lateinit var modeLabel: TextView
-    private lateinit var card: LinearLayout
+    private lateinit var card: PostCard
     private lateinit var replyRow: LinearLayout
-    private lateinit var avatar: ImageView
     private lateinit var selfAvatar: ImageView
-    private lateinit var nameView: TextView
-    private lateinit var verifiedView: ImageView
-    private lateinit var metaView: TextView
-    private lateinit var bodyView: TextView
-    private lateinit var mediaView: ImageView
-    private lateinit var replyingTo: TextView
     private val executor = Executors.newSingleThreadExecutor()
     private val main = Handler(Looper.getMainLooper())
     private var post: Post? = null
@@ -122,78 +109,7 @@ class ReplyActivity : Activity() {
             setPadding(pad, 0, pad, dp(8))
         }
 
-        avatar = circleImage(40)
-        nameView = TextView(this).apply {
-            setTextColor(textColor)
-            setTextSize(TypedValue.COMPLEX_UNIT_SP, 16f)
-            setTypeface(typeface, Typeface.BOLD)
-            isSingleLine = true
-            ellipsize = TextUtils.TruncateAt.END
-        }
-        verifiedView = ImageView(this).apply {
-            setImageResource(R.drawable.ic_verified)
-            visibility = View.GONE
-            setPadding(dp(2), 0, dp(2), 0)
-        }
-        metaView = TextView(this).apply {
-            setTextColor(secondary)
-            setTextSize(TypedValue.COMPLEX_UNIT_SP, 16f)
-            isSingleLine = true
-            ellipsize = TextUtils.TruncateAt.END
-        }
-        bodyView = TextView(this).apply {
-            setTextColor(textColor)
-            setTextSize(TypedValue.COMPLEX_UNIT_SP, 16f)
-            setPadding(0, dp(2), 0, 0)
-            maxLines = 8
-            ellipsize = TextUtils.TruncateAt.END
-        }
-        mediaView = ImageView(this).apply {
-            scaleType = ImageView.ScaleType.CENTER_CROP
-            visibility = View.GONE
-            outlineProvider = object : ViewOutlineProvider() {
-                override fun getOutline(view: View, outline: Outline) =
-                    outline.setRoundRect(0, 0, view.width, view.height, dp(12).toFloat())
-            }
-            clipToOutline = true
-        }
-        replyingTo = TextView(this).apply {
-            setTextColor(secondary)
-            setTextSize(TypedValue.COMPLEX_UNIT_SP, 16f)
-            setPadding(0, dp(16), 0, dp(8))
-        }
-        val header = LinearLayout(this).apply {
-            gravity = Gravity.CENTER_VERTICAL
-            addView(nameView, LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { weight = 0f })
-            addView(verifiedView)
-            addView(metaView, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
-        }
-        nameView.maxWidth = (resources.displayMetrics.widthPixels * 0.45f).toInt()
-        val textColumn = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            addView(header)
-            addView(bodyView)
-        }
-        val postRow = LinearLayout(this).apply {
-            addView(textColumn, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
-            addView(mediaView, LinearLayout.LayoutParams(dp(96), dp(96)).apply { marginStart = dp(12); topMargin = dp(4) })
-        }
-        val rightColumn = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            addView(postRow)
-            addView(replyingTo)
-        }
-        val leftColumn = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            gravity = Gravity.CENTER_HORIZONTAL
-            addView(avatar, LinearLayout.LayoutParams(dp(40), dp(40)))
-            addView(View(context).apply { setBackgroundColor(getColor(R.color.divider)) },
-                LinearLayout.LayoutParams(dp(2), 0, 1f).apply { topMargin = dp(4) })
-        }
-        card = LinearLayout(this).apply {
-            addView(leftColumn, LinearLayout.LayoutParams(dp(40), LinearLayout.LayoutParams.MATCH_PARENT))
-            addView(rightColumn, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f).apply { marginStart = dp(12) })
-        }
+        card = PostCard(this)
 
         textInput = EditText(this).apply {
             hint = getString(R.string.post_reply_hint)
@@ -341,26 +257,11 @@ class ReplyActivity : Activity() {
         updateSend()
     }
 
-    private fun setReplyingTo(handle: String?) {
-        if (handle == null) {
-            replyingTo.text = getString(R.string.replying_to_id, post?.id.orEmpty())
-            return
-        }
-        val label = getString(R.string.replying_to, handle)
-        val at = label.indexOf("@$handle")
-        replyingTo.text = SpannableString(label).apply {
-            if (at >= 0) setSpan(ForegroundColorSpan(getColor(R.color.accent)), at, at + handle.length + 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
-        }
-    }
+    private fun setReplyingTo(handle: String?) = card.setReplyingTo(handle, post?.id.orEmpty())
 
     private fun loadPreview(target: Post) {
         previewFor = target.id
-        nameView.text = target.user?.let { "@$it" }.orEmpty()
-        verifiedView.visibility = View.GONE
-        metaView.text = ""
-        bodyView.text = ""
-        avatar.setImageBitmap(null)
-        mediaView.visibility = View.GONE
+        card.showLoading(target.user)
         webPreview?.cancel()
         webPreview = null
         executor.execute {
@@ -403,47 +304,18 @@ class ReplyActivity : Activity() {
             val mediaBitmap = preview.mediaUrl?.let { PostPreviewSource.loadBitmap(it, dp(96)) }
             main.post {
                 if (isDestroyed || previewFor != target.id) return@post
-                avatarBitmap?.let(avatar::setImageBitmap)
-                mediaBitmap?.let(::showMedia)
+                avatarBitmap?.let(card::setAvatar)
+                mediaBitmap?.let(card::setMedia)
             }
         }
     }
 
     private fun showPreview(target: Post, preview: PostPreview) {
-        nameView.text = preview.name.ifEmpty { "@${preview.handle}" }
-        verifiedView.visibility = if (preview.verified) View.VISIBLE else View.GONE
-        val time = preview.createdAt?.let {
-            PostPreviewSource.relativeTime(it, System.currentTimeMillis(), getString(R.string.time_now), Locale.getDefault())
-        }
-        metaView.text = listOfNotNull(" @${preview.handle}", time).joinToString(" · ")
-        bodyView.text = highlight(preview.text)
+        card.show(preview)
         if (target.user == null && preview.handle.isNotEmpty()) {
             post = target.copy(user = preview.handle)
             setReplyingTo(preview.handle)
         }
-    }
-
-    private fun showMedia(bitmap: Bitmap) {
-        mediaView.setImageBitmap(bitmap)
-        mediaView.visibility = View.VISIBLE
-    }
-
-    private fun highlight(text: String): CharSequence = SpannableString(text).apply {
-        for (match in TAG_PATTERN.findAll(text)) {
-            setSpan(ForegroundColorSpan(getColor(R.color.accent)), match.range.first, match.range.last + 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
-        }
-    }
-
-    private fun circleImage(sizeDp: Int) = ImageView(this).apply {
-        scaleType = ImageView.ScaleType.CENTER_CROP
-        background = GradientDrawable().apply {
-            shape = GradientDrawable.OVAL
-            setColor(getColor(R.color.divider))
-        }
-        outlineProvider = ViewOutlineProvider.BACKGROUND
-        clipToOutline = true
-        minimumWidth = dp(sizeDp)
-        minimumHeight = dp(sizeDp)
     }
 
     private fun watcher(onChange: (String) -> Unit) = object : TextWatcher {
@@ -558,8 +430,6 @@ class ReplyActivity : Activity() {
         return if (chromeEnabled) CHROME else CustomTabsClient.getPackageName(this, emptyList())
     }
 
-    private fun dp(value: Int) = (value * resources.displayMetrics.density).toInt()
-
     companion object {
         private const val CHROME = "com.android.chrome"
         const val PREFS = "settings"
@@ -569,6 +439,5 @@ class ReplyActivity : Activity() {
         private const val REQUEST_IMAGES = 1
         private const val MENU_AUTO = 1
         private const val MENU_LOGOUT = 2
-        private val TAG_PATTERN = Regex("""(?<![\w@#])[#@][\p{L}\p{N}_]+""")
     }
 }

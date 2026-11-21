@@ -24,7 +24,7 @@ object SelfAvatar {
     }
 
     fun fetch(activity: Activity, done: (String?) -> Unit): HiddenPage =
-        HiddenPage(activity, "https://x.com/home", READ_JS) { json ->
+        HiddenPage(activity, "https://x.com/home", Scripts.get(activity, "self_avatar")) { json ->
             val url = json?.let { runCatching { JSONObject(it).optString("avatar") }.getOrNull() }
                 ?.takeIf { it.startsWith("https://") }
                 ?.replace("_normal.", "_bigger.")
@@ -40,19 +40,4 @@ object SelfAvatar {
     fun clear(context: Context) {
         context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().clear().apply()
     }
-
-    private const val READ_JS = """(function() {
-        ${HiddenPage.LOGIN_CHECK_JS}
-        var url = '';
-        try {
-            var s = window.__INITIAL_STATE__;
-            var u = s.entities.users.entities[s.session.user_id];
-            if (u && u.profile_image_url_https) url = u.profile_image_url_https;
-        } catch (e) {}
-        if (!url) {
-            var img = document.querySelector('[data-testid="DashButton_ProfileIcon_Link"] img, [data-testid="SideNav_AccountSwitcher_Button"] img');
-            if (img) url = img.src;
-        }
-        return url ? JSON.stringify({ avatar: url }) : 'wait';
-    })()"""
 }

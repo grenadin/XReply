@@ -107,8 +107,6 @@ class ReplySentCard : Activity() {
     // Sizes measured on a 900 px wide screenshot of X's own card on a 1100 px, 480 dpi screen: 1 unit = 11/27 dp.
     private fun u(value: Int) = (value * 11f / 27f * resources.displayMetrics.density).toInt()
 
-    private fun dp(value: Int) = (value * resources.displayMetrics.density).toInt()
-
     companion object {
         private const val EXTRA_URL = "url"
         private const val SHOW_MS = 4900L

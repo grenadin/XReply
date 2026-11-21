@@ -168,6 +168,4 @@ class SettingsActivity : Activity() {
         setTypeface(typeface, Typeface.BOLD)
         setPadding(0, dp(28), 0, dp(4))
     }
-
-    private fun dp(value: Int) = (value * resources.displayMetrics.density).toInt()
 }

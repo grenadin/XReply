@@ -45,6 +45,4 @@ class PostStatusCard(
     fun setStatus(text: CharSequence) {
         status.text = text
     }
-
-    private fun dp(value: Int) = (value * resources.displayMetrics.density).toInt()
 }

@@ -1,6 +1,5 @@
 package dev.grenadin.xreply
 
-import android.annotation.SuppressLint
 import android.app.Activity
 import android.graphics.Typeface
 import android.os.Bundle
@@ -9,9 +8,7 @@ import android.os.Looper
 import android.util.TypedValue
 import android.view.Gravity
 import android.webkit.CookieManager
-import android.webkit.WebResourceRequest
 import android.webkit.WebView
-import android.webkit.WebViewClient
 import android.widget.ImageButton
 import android.widget.LinearLayout
 import android.widget.TextView
@@ -21,20 +18,9 @@ class LoginActivity : Activity() {
     private lateinit var webView: WebView
     private val handler = Handler(Looper.getMainLooper())
 
-    @SuppressLint("SetJavaScriptEnabled")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        webView = WebView(this).apply {
-            settings.javaScriptEnabled = true
-            settings.domStorageEnabled = true
-            webViewClient = object : WebViewClient() {
-                override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
-                    val scheme = request.url.scheme
-                    return scheme != "https" && scheme != "http"
-                }
-            }
-        }
-        CookieManager.getInstance().setAcceptThirdPartyCookies(webView, true)
+        webView = XWebView.create(this)
         val close = ImageButton(this).apply {
             setImageResource(R.drawable.ic_close)
             background = null
@@ -89,8 +75,6 @@ class LoginActivity : Activity() {
         webView.destroy()
         super.onDestroy()
     }
-
-    private fun dp(value: Int) = (value * resources.displayMetrics.density).toInt()
 
     companion object {
         private const val LOGIN_URL = "https://x.com/i/flow/login"
