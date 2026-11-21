@@ -31,7 +31,7 @@ XReply posts the reply, opens the post in the X app again and shows a **Reply se
 
 XReply opens `https://x.com/intent/post?in_reply_to=<post id>&text=<your text>` in a WebView where you are logged in to X. When the text on the page matches what you wrote, it presses X's Post button. It never posts text you did not write, and it stops and shows the page when something needs you (login, a text mismatch, a photo that did not attach, or a timeout).
 
-The post preview comes from `cdn.syndication.twimg.com` (the data X uses for embedded posts), with `publish.twitter.com/oembed` as a fallback.
+The post preview comes from `cdn.syndication.twimg.com` (the data X uses for embedded posts), with `publish.twitter.com/oembed` as a fallback. Posts from protected accounts are not available there, so XReply then opens the post on x.com in a hidden WebView with your login and reads the name, text and photo from the page. Your own avatar next to the reply box is read from x.com the same way and kept for a day.
 
 ## Privacy
 
@@ -43,7 +43,7 @@ The post preview comes from `cdn.syndication.twimg.com` (the data X uses for emb
 
 - XReply depends on X's web page. If X changes it, auto-posting can stop working until XReply is updated. You can always turn auto-posting off and post from Chrome.
 - Pressing Post on your behalf is a form of automation. You send every reply yourself, one at a time, but use XReply at your own risk; your account is your responsibility under X's rules.
-- The post preview uses an unofficial endpoint and may stop working; replying still works without it.
+- The post preview uses unofficial endpoints and X's web page, so it may stop working; replying still works without it.
 
 ## Build
 
@@ -92,7 +92,7 @@ XReply จะโพสต์ให้ เปิดโพสต์นั้นใ
 
 XReply เปิด `https://x.com/intent/post?in_reply_to=<รหัสโพสต์>&text=<ข้อความ>` ใน WebView ที่เข้าสู่ระบบ X ไว้ เมื่อข้อความบนหน้าเว็บตรงกับที่คุณพิมพ์ จึงกดปุ่ม Post ของ X จะไม่โพสต์ข้อความที่คุณไม่ได้พิมพ์ และจะหยุดแล้วแสดงหน้าเว็บเมื่อต้องให้คุณจัดการ (ต้องเข้าสู่ระบบ ข้อความไม่ตรง แนบรูปไม่สำเร็จ หรือรอนานเกินไป)
 
-ข้อมูลตัวอย่างโพสต์มาจาก `cdn.syndication.twimg.com` (ข้อมูลที่ X ใช้แสดงโพสต์แบบฝัง) ถ้าใช้ไม่ได้จะใช้ `publish.twitter.com/oembed` แทน
+ข้อมูลตัวอย่างโพสต์มาจาก `cdn.syndication.twimg.com` (ข้อมูลที่ X ใช้แสดงโพสต์แบบฝัง) ถ้าใช้ไม่ได้จะใช้ `publish.twitter.com/oembed` แทน โพสต์ของบัญชีที่ล็อกไว้ (protected) ไม่มีในสองแหล่งนี้ XReply จึงเปิดโพสต์บน x.com ใน WebView ที่ซ่อนอยู่ด้วยการเข้าสู่ระบบของคุณ แล้วอ่านชื่อ ข้อความ และรูปจากหน้าเว็บ รูปโปรไฟล์ของคุณข้างช่องพิมพ์ก็อ่านจาก x.com แบบเดียวกัน และเก็บไว้ใช้หนึ่งวัน
 
 ### ความเป็นส่วนตัว
 
@@ -104,7 +104,7 @@ XReply เปิด `https://x.com/intent/post?in_reply_to=<รหัสโพ�
 
 - XReply อาศัยหน้าเว็บของ X ถ้า X เปลี่ยนหน้าเว็บ การโพสต์อัตโนมัติอาจใช้ไม่ได้จนกว่าจะอัปเดต XReply แต่ยังปิดโพสต์อัตโนมัติแล้วโพสต์ผ่าน Chrome ได้เสมอ
 - การกด Post แทนผู้ใช้ถือเป็นการทำงานอัตโนมัติรูปแบบหนึ่ง แม้คุณจะส่งเองทีละข้อความ โปรดใช้ด้วยความระมัดระวัง บัญชีของคุณอยู่ภายใต้กฎของ X และเป็นความรับผิดชอบของคุณเอง
-- ตัวอย่างโพสต์ใช้ endpoint ที่ไม่เป็นทางการ อาจใช้ไม่ได้ในอนาคต แต่การตอบกลับยังใช้ได้ตามปกติ
+- ตัวอย่างโพสต์ใช้ endpoint ที่ไม่เป็นทางการและหน้าเว็บของ X อาจใช้ไม่ได้ในอนาคต แต่การตอบกลับยังใช้ได้ตามปกติ
 
 ### Build
 
