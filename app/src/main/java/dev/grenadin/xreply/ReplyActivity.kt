@@ -189,6 +189,7 @@ class ReplyActivity : Activity() {
     override fun onDestroy() {
         webPreview?.cancel()
         selfAvatarPage?.cancel()
+        ReplyPreload.releaseFor(this)
         executor.shutdownNow()
         main.removeCallbacksAndMessages(null)
         super.onDestroy()
@@ -229,6 +230,7 @@ class ReplyActivity : Activity() {
             modeLabel.setTextColor(getColor(R.color.text_secondary))
         }
         galleryButton.alpha = if (autoPost && media.size < MediaFiles.MAX_IMAGES) 1f else 0.4f
+        updateSend()
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
@@ -245,7 +247,8 @@ class ReplyActivity : Activity() {
 
     private fun updateSend() {
         val length = PostLength.count(textInput.text.toString())
-        val enabled = post != null && textInput.text.isNotBlank() && length <= PostLength.LIMIT
+        val hasContent = textInput.text.isNotBlank() || (autoPost && media.isNotEmpty())
+        val enabled = post != null && hasContent && length <= PostLength.LIMIT
         send.isEnabled = enabled
         send.alpha = if (enabled) 1f else 0.5f
     }
@@ -254,6 +257,7 @@ class ReplyActivity : Activity() {
         post = newPost
         setReplyingTo(newPost.user)
         if (previewFor != newPost.id) loadPreview(newPost)
+        if (autoPost && XLogin.isLoggedIn()) ReplyPreload.start(this, newPost.id)
         updateSend()
     }
 
@@ -396,6 +400,7 @@ class ReplyActivity : Activity() {
             return
         }
         if (autoPost) {
+            ReplyPreload.handOff()
             startActivity(Intent(this, WebReplyActivity::class.java)
                 .putExtra(WebReplyActivity.EXTRA_ID, post.id)
                 .putExtra(WebReplyActivity.EXTRA_USER, post.user)

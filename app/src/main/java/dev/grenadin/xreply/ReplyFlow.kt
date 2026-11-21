@@ -5,6 +5,7 @@ class ReplyFlow(
     private val mediaCount: Int,
     private val fromApp: Boolean,
     private val startedAt: Long,
+    private var needsFill: Boolean = false,
 ) {
     enum class Phase { LOADING, CLICKED, DONE, MANUAL }
 
@@ -12,6 +13,7 @@ class ReplyFlow(
 
     sealed interface Action {
         data object Attach : Action
+        data object Fill : Action
         data object Click : Action
         data object Reload : Action
         data class Reveal(val reason: Reason) : Action
@@ -35,6 +37,8 @@ class ReplyFlow(
     private var leftAt = 0L
     private var seenLogin = false
     private var reloads = 0
+    private var filledAt = 0L
+    private var fills = 0
 
     fun manual() {
         phase = Phase.MANUAL
@@ -70,12 +74,21 @@ class ReplyFlow(
                 if (seenLogin && reloads < MAX_RELOADS) {
                     reloads++
                     seenLogin = false
+                    needsFill = false
                     actions += Action.Reload
                 }
             }
             result.startsWith("mismatch") -> {
                 phase = Phase.MANUAL
                 actions += Action.Reveal(Reason.MISMATCH)
+            }
+            result == "waiting:empty" && needsFill -> {
+                readySince = 0
+                if (fills < MAX_FILLS && (filledAt == 0L || now - filledAt > FILL_RETRY_MS)) {
+                    fills++
+                    filledAt = now
+                    actions += Action.Fill
+                }
             }
             result == "needmedia" -> {
                 readySince = 0
@@ -123,9 +136,11 @@ class ReplyFlow(
         const val HIDDEN_TIMEOUT_MS = 20000L
         const val HIDDEN_TIMEOUT_MEDIA_MS = 60000L
         const val NEW_POST_WAIT_MS = 1500L
-        const val CLICK_DELAY_MS = 300L
+        const val CLICK_DELAY_MS = 100L
         const val CONFIRM_TIMEOUT_MS = 15000L
         const val CONFIRM_TIMEOUT_MEDIA_MS = 45000L
         const val MAX_RELOADS = 2
+        const val FILL_RETRY_MS = 1500L
+        const val MAX_FILLS = 2
     }
 }

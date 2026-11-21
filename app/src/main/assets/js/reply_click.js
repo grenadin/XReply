@@ -6,6 +6,10 @@
                 var d = typeof body === 'string' ? JSON.parse(body) : body;
                 var r = d.data.create_tweet.tweet_results.result;
                 var id = r.rest_id || (r.tweet && r.tweet.rest_id);
+                var t = r.tweet || r;
+                var u = t.core && t.core.user_results && t.core.user_results.result;
+                var name = u && ((u.core && u.core.screen_name) || (u.legacy && u.legacy.screen_name));
+                if (name) window.__xreplyUser = name;
                 if (id) window.__xreplyId = id;
             } catch (e) {}
         };

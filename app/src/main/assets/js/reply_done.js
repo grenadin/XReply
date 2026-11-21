@@ -1,7 +1,9 @@
 (function() {
-    if (!/^\/(intent|compose)\/(post|tweet)/.test(location.pathname)) {
+    var id = window.__xreplyId || '';
+    if (id || !/^\/(intent|compose)\/(post|tweet)/.test(location.pathname)) {
         var a = document.querySelector('[data-testid="toast"] a[href*="/status/"]');
-        return 'left:' + location.pathname + '|' + (window.__xreplyId || '') + '|' + (a ? a.href : '');
+        var link = a ? a.href : (id && window.__xreplyUser ? 'https://x.com/' + window.__xreplyUser + '/status/' + id : '');
+        return 'left:' + location.pathname + '|' + id + '|' + link;
     }
     var toast = document.querySelector('[data-testid="toast"]');
     if (toast && toast.innerText) return 'toast:' + toast.innerText;

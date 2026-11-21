@@ -9,12 +9,10 @@ import android.graphics.Typeface
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import android.util.Base64
 import android.util.Log
 import android.view.Gravity
 import android.view.View
 import android.view.WindowManager
-import android.webkit.JavascriptInterface
 import android.webkit.WebView
 import android.widget.FrameLayout
 import android.widget.LinearLayout
@@ -24,6 +22,7 @@ import org.json.JSONObject
 import java.io.File
 
 class WebReplyActivity : Activity() {
+    private lateinit var replyPage: ReplyPage
     private lateinit var webView: WebView
     private lateinit var page: LinearLayout
     private lateinit var blocker: View
@@ -55,8 +54,10 @@ class WebReplyActivity : Activity() {
 
         val pad = dp(12)
         status = TextView(this).apply { setPadding(pad, pad, pad, pad) }
-        webView = XWebView.create(this)
-        if (media.isNotEmpty()) webView.addJavascriptInterface(MediaBridge(media), "XReplyMedia")
+        val preloaded = ReplyPreload.take(this, id)
+        replyPage = preloaded ?: ReplyPage(this, id)
+        replyPage.media.addAll(media)
+        webView = replyPage.webView
         page = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             fitsSystemWindows = true
@@ -89,10 +90,16 @@ class WebReplyActivity : Activity() {
         }
 
         startedAt = System.currentTimeMillis()
-        flow = ReplyFlow(media.size, intent.getBooleanExtra(EXTRA_FROM_APP, false), startedAt)
-        webView.loadUrl(replyUrl)
-        log("start")
-        if (expected.isBlank()) {
+        val fromApp = intent.getBooleanExtra(EXTRA_FROM_APP, false)
+        flow = ReplyFlow(media.size, fromApp, startedAt, needsFill = preloaded != null && expected.isNotBlank())
+        replyPage.lean = fromApp && (expected.isNotBlank() || media.isNotEmpty())
+        if (preloaded == null) {
+            webView.loadUrl(replyUrl)
+            log("start")
+        } else {
+            log("start preloaded age=${startedAt - preloaded.createdAt}")
+        }
+        if (expected.isBlank() && media.isEmpty()) {
             flow.manual()
             reveal(R.string.status_manual)
         } else {
@@ -117,9 +124,18 @@ class WebReplyActivity : Activity() {
             lastLogged = result
         }
         for (action in flow.onResult(result, now, revealed)) when (action) {
+            ReplyFlow.Action.Fill -> {
+                webView.requestFocus()
+                webView.evaluateJavascript(Scripts.get(this, "reply_fill").replace("TEXT", JSONObject.quote(expected))) { raw ->
+                    log("t=${System.currentTimeMillis() - startedAt} fill ${raw?.trim('"')}")
+                }
+            }
             ReplyFlow.Action.Attach -> webView.evaluateJavascript(Scripts.get(this, "reply_attach")) { raw -> log("attach ${raw?.trim('"')}") }
             ReplyFlow.Action.Click -> webView.evaluateJavascript(Scripts.get(this, "reply_click")) { raw ->
-                if (raw?.trim('"') == "clicked") flow.onClicked(System.currentTimeMillis())
+                if (raw?.trim('"') == "clicked") {
+                    log("t=${System.currentTimeMillis() - startedAt} clicked blocked=${replyPage.blocked.get()}")
+                    flow.onClicked(System.currentTimeMillis())
+                }
             }
             ReplyFlow.Action.Reload -> webView.loadUrl(replyUrl)
             is ReplyFlow.Action.Reveal -> {
@@ -164,7 +180,12 @@ class WebReplyActivity : Activity() {
         if (res != 0) setStatus(res)
         if (revealed) return
         revealed = true
-        log("reveal")
+        log("reveal blocked=${replyPage.blocked.get()}")
+        if (replyPage.lean) {
+            replyPage.lean = false
+            // Reload so the visible page has its images; not after the click, and not with photos attached, which a reload would drop.
+            if (replyPage.blocked.get() > 0 && media.isEmpty() && flow.phase != ReplyFlow.Phase.CLICKED) webView.loadUrl(replyUrl)
+        }
         if (quiet) {
             window.clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE)
             window.attributes = window.attributes.apply { alpha = 1f }
@@ -188,7 +209,7 @@ class WebReplyActivity : Activity() {
 
     override fun onDestroy() {
         handler.removeCallbacksAndMessages(null)
-        if (::webView.isInitialized) webView.destroy()
+        if (::replyPage.isInitialized) replyPage.destroy()
         media.forEach { it.delete() }
         super.onDestroy()
     }
@@ -201,15 +222,8 @@ class WebReplyActivity : Activity() {
         const val EXTRA_MEDIA = "media"
         const val X_PACKAGE = "com.twitter.android"
         private const val REPLY_SENT_CARD_DELAY_MS = 900L
-        private const val POLL_MS = 250L
+        private const val POLL_MS = 100L
         private const val FINISH_DELAY_MS = 1200L
         private const val TAG = "XReply"
     }
-}
-
-private class MediaBridge(private val files: List<File>) {
-    @JavascriptInterface fun count() = files.size
-    @JavascriptInterface fun name(i: Int): String = files[i].name
-    @JavascriptInterface fun type(i: Int): String = MediaFiles.mimeOf(files[i])
-    @JavascriptInterface fun data(i: Int): String = Base64.encodeToString(files[i].readBytes(), Base64.NO_WRAP)
 }

@@ -126,6 +126,24 @@ class ReplyFlowTest {
     }
 
     @Test
+    fun preloadedPageFillsEmptyBoxOnceThenRetries() {
+        val f = ReplyFlow(0, true, startedAt = 0, needsFill = true)
+        assertEquals(listOf(Action.Fill), f.onResult("waiting:empty", 100, false))
+        assertEquals(emptyList<Action>(), f.onResult("waiting:empty", 100 + ReplyFlow.FILL_RETRY_MS, false))
+        assertEquals(listOf(Action.Fill), f.onResult("waiting:empty", 101 + ReplyFlow.FILL_RETRY_MS, false))
+        assertEquals(emptyList<Action>(), f.onResult("waiting:empty", 10000, false))
+    }
+
+    @Test
+    fun pageLoadedWithTextNeverFills() {
+        assertEquals(emptyList<Action>(), flow().onResult("waiting:empty", 100, false))
+        val f = ReplyFlow(0, true, startedAt = 0, needsFill = true)
+        f.onResult("login", 100, false)
+        f.onResult("other:/home", 200, true)
+        assertEquals(emptyList<Action>(), f.onResult("waiting:empty", 300, true))
+    }
+
+    @Test
     fun clickResultIgnoredOutsideLoading() {
         val f = flow()
         f.manual()
