@@ -10,24 +10,24 @@ On some phones the X app fails to post replies. We saw this on a Huawei Mate X6 
 
 1. Open XReply once and tap **Log in to X**. Log in with your X username and password. This login stays inside XReply.
 2. In the X app, tap **Share** on a post and pick **XReply**.
-3. Write your reply, add up to 4 photos if you want, and tap **Reply**.
+3. Write your reply, add up to 4 photos, or both, and tap **Reply**. A reply with only photos works too.
 
 XReply posts the reply, opens the post in the X app again and shows a **Reply sent** card. **View post** opens your new reply.
 
 ## Features
 
 - Shows the post you are replying to (name, avatar, text, first photo), so you can check that it is the right one
-- Up to 4 photos (JPEG, PNG, WebP); large photos are scaled down before upload
+- Up to 4 photos (JPEG, PNG, WebP), with or without text; large photos are scaled down before upload
 - Character counter that follows X's rules (CJK and emoji count as 2, links as 23)
 - Two ways to send:
-  - **Post automatically** (default): XReply fills in X's reply page in a hidden WebView and presses Post for you
-  - **Off**: the reply page opens in Chrome and you press Post yourself
+  - **Post automatically** (default): XReply fills in X's reply page in a hidden WebView and presses Post for you. In our tests a text reply was sent about 1.5 seconds after tapping **Reply**; photos take longer while X processes them
+  - **Off**: the reply page opens in Chrome and you press Post yourself (text only)
 - Optional sending status card, which can be turned off in settings
 - English and Thai, light and dark theme
 
 ## How it works
 
-XReply opens `https://x.com/intent/post?in_reply_to=<post id>&text=<your text>` in a WebView where you are logged in to X. When the text on the page matches what you wrote, it presses X's Post button. It never posts text you did not write, and it stops and shows the page when something needs you (login, a text mismatch, a photo that did not attach, or a timeout).
+While you write, XReply already opens X's reply page, `https://x.com/intent/post?in_reply_to=<post id>`, in a hidden WebView where you are logged in to X. Photos, videos and web fonts are skipped while the page is hidden, since nobody sees them. When you tap **Reply**, XReply types your text into the page, attaches your photos, and presses X's Post button once the text on the page matches what you wrote. If there is no prepared page (for example, you logged in only after opening the reply screen), XReply opens the page with your text in the address (`&text=<your text>`) instead. It never posts text you did not write, and it stops and shows the page when something needs you (login, a text mismatch, a photo that did not attach, or a timeout).
 
 The post preview comes from `cdn.syndication.twimg.com` (the data X uses for embedded posts), with `publish.twitter.com/oembed` as a fallback. Posts from protected accounts are not available there, so XReply then opens the post on x.com in a hidden WebView with your login and reads the name, text and photo from the page. Your own avatar next to the reply box is read from x.com the same way and kept for a day.
 
