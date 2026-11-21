@@ -33,11 +33,14 @@
             android:windowSoftInputMode="adjustResize" />
         <activity
             android:name=".ReplyActivity"
+            android:icon="@drawable/ic_share"
             android:excludeFromRecents="true"
             android:exported="true"
             android:theme="@style/Theme.XReply"
             android:windowSoftInputMode="stateVisible|adjustResize">
-            <intent-filter android:label="@string/share_label">
+            <intent-filter
+                android:icon="@drawable/ic_share"
+                android:label="@string/share_label">
                 <action android:name="android.intent.action.SEND" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <data android:mimeType="text/plain" />
