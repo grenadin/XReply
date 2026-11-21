@@ -47,6 +47,7 @@ class ReplyActivity : Activity() {
     private lateinit var card: LinearLayout
     private lateinit var replyRow: LinearLayout
     private lateinit var avatar: ImageView
+    private lateinit var selfAvatar: ImageView
     private lateinit var nameView: TextView
     private lateinit var verifiedView: ImageView
     private lateinit var metaView: TextView
@@ -57,6 +58,8 @@ class ReplyActivity : Activity() {
     private val main = Handler(Looper.getMainLooper())
     private var post: Post? = null
     private var previewFor: String? = null
+    private var webPreview: HiddenPage? = null
+    private var selfAvatarPage: HiddenPage? = null
     private var autoPost = true
     private val media = mutableListOf<File>()
     private lateinit var mediaRow: LinearLayout
@@ -205,12 +208,8 @@ class ReplyActivity : Activity() {
             setHintTextColor(secondary)
         }
         replyRow = LinearLayout(this).apply {
-            addView(View(context).apply {
-                background = GradientDrawable().apply {
-                    shape = GradientDrawable.OVAL
-                    setColor(getColor(R.color.divider))
-                }
-            }, LinearLayout.LayoutParams(dp(40), dp(40)))
+            selfAvatar = circleImage(40)
+            addView(selfAvatar, LinearLayout.LayoutParams(dp(40), dp(40)))
             addView(textInput, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f).apply { marginStart = dp(12) })
         }
         mediaRow = LinearLayout(this)
@@ -262,6 +261,7 @@ class ReplyActivity : Activity() {
 
         update(sharedPost)
         updateCounter()
+        loadSelfAvatar()
         textInput.requestFocus()
     }
 
@@ -271,6 +271,8 @@ class ReplyActivity : Activity() {
     }
 
     override fun onDestroy() {
+        webPreview?.cancel()
+        selfAvatarPage?.cancel()
         executor.shutdownNow()
         main.removeCallbacksAndMessages(null)
         super.onDestroy()
@@ -359,11 +361,46 @@ class ReplyActivity : Activity() {
         bodyView.text = ""
         avatar.setImageBitmap(null)
         mediaView.visibility = View.GONE
+        webPreview?.cancel()
+        webPreview = null
         executor.execute {
             val preview = PostPreviewSource.fetch(target)
-            main.post { if (!isDestroyed && previewFor == target.id && preview != null) showPreview(target, preview) }
-            val avatarBitmap = preview?.avatarUrl?.let { PostPreviewSource.loadBitmap(it, dp(40)) }
-            val mediaBitmap = preview?.mediaUrl?.let { PostPreviewSource.loadBitmap(it, dp(96)) }
+            main.post {
+                if (isDestroyed || previewFor != target.id) return@post
+                when {
+                    preview != null -> onPreview(target, preview)
+                    XLogin.isLoggedIn() -> webPreview = WebPostPreview.start(this, target) { webResult ->
+                        webPreview = null
+                        if (!isDestroyed && previewFor == target.id && webResult != null) onPreview(target, webResult)
+                    }
+                }
+            }
+        }
+    }
+
+    private fun loadSelfAvatar() {
+        if (!XLogin.isLoggedIn()) return
+        val cached = SelfAvatar.cached(this)
+        cached?.let(::showSelfAvatar)
+        if (SelfAvatar.isFresh(this)) return
+        selfAvatarPage = SelfAvatar.fetch(this) { url ->
+            selfAvatarPage = null
+            if (url != null && url != cached && !isDestroyed) showSelfAvatar(url)
+        }
+    }
+
+    private fun showSelfAvatar(url: String) {
+        executor.execute {
+            val bitmap = PostPreviewSource.loadBitmap(url, dp(40))
+            main.post { if (!isDestroyed) bitmap?.let(selfAvatar::setImageBitmap) }
+        }
+    }
+
+    private fun onPreview(target: Post, preview: PostPreview) {
+        showPreview(target, preview)
+        executor.execute {
+            val avatarBitmap = preview.avatarUrl?.let { PostPreviewSource.loadBitmap(it, dp(40)) }
+            val mediaBitmap = preview.mediaUrl?.let { PostPreviewSource.loadBitmap(it, dp(96)) }
             main.post {
                 if (isDestroyed || previewFor != target.id) return@post
                 avatarBitmap?.let(avatar::setImageBitmap)
