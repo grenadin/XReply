@@ -130,7 +130,13 @@ class WebReplyActivity : Activity() {
                     log("t=${System.currentTimeMillis() - startedAt} fill ${raw?.trim('"')}")
                 }
             }
-            ReplyFlow.Action.Attach -> webView.evaluateJavascript(Scripts.get(this, "reply_attach")) { raw -> log("attach ${raw?.trim('"')}") }
+            ReplyFlow.Action.Attach -> {
+                replyPage.mediaOpen = XWebView.isX(Uri.parse(webView.url.orEmpty()).host)
+                webView.evaluateJavascript(Scripts.get(this, "reply_attach")) { raw ->
+                    replyPage.mediaOpen = false
+                    log("attach ${raw?.trim('"')}")
+                }
+            }
             ReplyFlow.Action.Click -> webView.evaluateJavascript(Scripts.get(this, "reply_click")) { raw ->
                 if (raw?.trim('"') == "clicked") {
                     log("t=${System.currentTimeMillis() - startedAt} clicked blocked=${replyPage.blocked.get()}")

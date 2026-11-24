@@ -14,7 +14,8 @@ import java.util.concurrent.atomic.AtomicInteger
 // WebView set up the same way everywhere XReply opens x.com with the user's login.
 object XWebView {
     @SuppressLint("SetJavaScriptEnabled")
-    fun create(context: Context, lean: () -> Boolean = { false }, blocked: AtomicInteger? = null): WebView {
+    // xOnly: pages that run XReply's scripts stay on X; links elsewhere are not followed.
+    fun create(context: Context, xOnly: Boolean = true, lean: () -> Boolean = { false }, blocked: AtomicInteger? = null): WebView {
         if (context.applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE != 0) WebView.setWebContentsDebuggingEnabled(true)
         return WebView(context).apply {
             settings.javaScriptEnabled = true
@@ -22,7 +23,8 @@ object XWebView {
             webViewClient = object : WebViewClient() {
                 override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
                     val scheme = request.url.scheme
-                    return scheme != "https" && scheme != "http"
+                    if (scheme != "https" && scheme != "http") return true
+                    return xOnly && !isX(request.url.host)
                 }
 
                 override fun shouldInterceptRequest(view: WebView, request: WebResourceRequest): WebResourceResponse? {
@@ -34,6 +36,10 @@ object XWebView {
             CookieManager.getInstance().setAcceptThirdPartyCookies(this, true)
         }
     }
+
+    fun isX(host: String?): Boolean = host != null && X_HOSTS.any { host == it || host.endsWith(".$it") }
+
+    private val X_HOSTS = listOf("x.com", "twitter.com")
 
     // Photos, videos, emoji images and web fonts: not needed while the reply page is hidden.
     private fun isHeavy(request: WebResourceRequest): Boolean {

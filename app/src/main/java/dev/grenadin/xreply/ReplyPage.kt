@@ -16,9 +16,11 @@ class ReplyPage(activity: Activity, val postId: String) {
     @Volatile var lean = true
     val blocked = AtomicInteger()
     val media = CopyOnWriteArrayList<File>()
+    // The bridge hands out the photos only while XReply runs its own attach script.
+    @Volatile var mediaOpen = false
     val createdAt = System.currentTimeMillis()
-    val webView = XWebView.create(context, { lean }, blocked).apply {
-        addJavascriptInterface(MediaBridge(media), "XReplyMedia")
+    val webView = XWebView.create(context, lean = { lean }, blocked = blocked).apply {
+        addJavascriptInterface(MediaBridge(media) { mediaOpen }, "XReplyMedia")
     }
 
     fun attach(activity: Activity) {
@@ -36,11 +38,16 @@ class ReplyPage(activity: Activity, val postId: String) {
     }
 }
 
-private class MediaBridge(private val files: List<File>) {
-    @JavascriptInterface fun count() = files.size
-    @JavascriptInterface fun name(i: Int): String = files[i].name
-    @JavascriptInterface fun type(i: Int): String = MediaFiles.mimeOf(files[i])
-    @JavascriptInterface fun data(i: Int): String = Base64.encodeToString(files[i].readBytes(), Base64.NO_WRAP)
+private class MediaBridge(private val files: List<File>, private val open: () -> Boolean) {
+    @JavascriptInterface fun count() = if (open()) files.size else 0
+    @JavascriptInterface fun name(i: Int): String = file(i).name
+    @JavascriptInterface fun type(i: Int): String = MediaFiles.mimeOf(file(i))
+    @JavascriptInterface fun data(i: Int): String = Base64.encodeToString(file(i).readBytes(), Base64.NO_WRAP)
+
+    private fun file(i: Int): File {
+        check(open())
+        return files[i]
+    }
 }
 
 // Opens the reply page while the user is still typing, so sending only has to fill in the text and click.

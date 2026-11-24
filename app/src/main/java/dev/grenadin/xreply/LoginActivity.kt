@@ -20,7 +20,7 @@ class LoginActivity : Activity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        webView = XWebView.create(this)
+        webView = XWebView.create(this, xOnly = false)
         val close = ImageButton(this).apply {
             setImageResource(R.drawable.ic_close)
             background = null
