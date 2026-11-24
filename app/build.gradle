@@ -2,6 +2,13 @@ plugins {
     id 'com.android.application'
     id 'org.jetbrains.kotlin.android'
 }
+
+// Release signing is read from a properties file outside the repo (storeFile, storePassword, keyAlias, keyPassword).
+// Point to it with -PxreplySigningFile=<path> or xreplySigningFile in ~/.gradle/gradle.properties.
+def signingFile = project.findProperty('xreplySigningFile')?.with { file(it) }
+def signing = new Properties()
+if (signingFile?.exists()) signingFile.withInputStream { signing.load(it) }
+
 android {
     namespace 'dev.grenadin.xreply'
     compileSdk 35
@@ -9,12 +16,23 @@ android {
         applicationId 'dev.grenadin.xreply'
         minSdk 26
         targetSdk 35
-        versionCode 9
-        versionName '0.9'
+        versionCode 10
+        versionName '1.0'
+    }
+    signingConfigs {
+        release {
+            if (signing.storeFile) {
+                storeFile file(signing.storeFile)
+                storePassword signing.storePassword
+                keyAlias signing.keyAlias
+                keyPassword signing.keyPassword
+            }
+        }
     }
     buildTypes {
         release {
             minifyEnabled false
+            if (signing.storeFile) signingConfig signingConfigs.release
         }
     }
     compileOptions {

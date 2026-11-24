@@ -6,6 +6,18 @@ On some phones the X app fails to post replies. We saw this on a Huawei Mate X6 
 
 > XReply is an unofficial app. It is not affiliated with, endorsed by, or sponsored by X Corp.
 
+## Install
+
+Download `XReply-<version>.apk` from [Releases](https://github.com/grenadin/XReply/releases) and open it on your phone. Android asks you to allow installing apps from your browser or file manager the first time.
+
+You can check the file against the `.sha256` file next to it. The APK is signed with this certificate (SHA-256):
+
+```
+B0:61:D7:8D:F9:37:B9:FB:02:EC:3D:B9:97:E3:FC:8E:9B:32:D1:DE:9C:DB:9C:41:8D:AD:DF:63:03:34:89:19
+```
+
+If you built XReply yourself before, uninstall that build first: Android does not install an app over one signed with a different key.
+
 ## How to use
 
 1. Open XReply once and tap **Log in to X**. Log in with your X username and password. This login stays inside XReply.
@@ -51,7 +63,7 @@ Requirements: Android SDK and JDK 17. The app supports Android 8.0 (API 26) and 
 ./gradlew assembleDebug testDebugUnitTest
 ```
 
-The APK is in `app/build/outputs/apk/debug/`.
+The APK is in `app/build/outputs/apk/debug/`. Release builds are signed only when `xreplySigningFile` points to a properties file with `storeFile`, `storePassword`, `keyAlias` and `keyPassword`.
 
 ## License
 
